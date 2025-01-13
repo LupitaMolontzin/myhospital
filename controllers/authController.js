@@ -1,5 +1,4 @@
-// controllers/userController.js
-const User = require('../modules/base/users/models');
+const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 
@@ -43,7 +42,7 @@ exports.registerUser = async (req, res) => {
 // Login User
 exports.loginUser = (req, res, next) => {
   passport.authenticate('local', {
-    successRedirect: '/',
+    successRedirect: '/users', // Redirige a la vista de usuarios después de iniciar sesión
     failureRedirect: '/',
     failureFlash: true
   })(req, res, next);
@@ -60,4 +59,18 @@ exports.logoutUser = (req, res) => {
     req.flash('success_msg', 'Has cerrado sesión correctamente');
     res.redirect('/'); // Cambia esta ruta a la página a la que quieras redirigir después del logout
   });
+};
+
+// Mostrar Usuarios
+exports.showUsers = (req, res) => {
+  const currentUser = req.user; // Obtén el usuario actual
+  User.find()
+    .then(users => {
+      res.render('users', { currentUser, users }); // Pasa currentUser a la vista
+    })
+    .catch(err => {
+      console.error('Error al obtener usuarios:', err);
+      req.flash('error_msg', 'No se pudieron obtener los usuarios.');
+      res.redirect('/');
+    });
 };

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Usuarios</title>
+  <!-- Bootstrap CSS CDN -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Incluir el Navbar -->
+  <%- include('./partials/navbar') %>
+
+  <div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Lista de Usuarios</h2>
+      <button class="btn btn-primary" data-toggle="modal" data-target="#createUserModal">Agregar Usuario</button>
+    </div>
+    
+    <!-- Formulario de búsqueda -->
+    <form action="/users" method="GET" class="search-form mb-3">
+      <input type="text" name="search" placeholder="Buscar por nombre o email" value="<%= searchQuery || '' %>">
+      <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
+
+    <!-- Tabla de Usuarios -->
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Imagen de Perfil</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach((user, index) => { %>
+          <tr>
+            <td><%= index + 1 %></td>
+            <td>
+              <img src="/uploads/<%= user.profileImage %>" alt="Imagen de Perfil" class="profile-img">
+            </td>
+            <td><%= user.name %></td>
+            <td><%= user.email %></td>
+            <td><%= user.role %></td>
+            <td>
+              <% if (currentUser && currentUser.role === 'admin') { %> <!-- Verificación de administrador -->
+                <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editUserModal" 
+                        onclick="loadEditModal('<%= user._id %>', '<%= user.name %>', '<%= user.email %>', 
+                                               '<%= user.role %>')">Editar</button>
+                <form action="/users/delete/<%= user._id %>" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este usuario?');">Eliminar</button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table> <!-- Cerramos la tabla correctamente -->
+
+   <!-- Paginación -->
+   <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+          <a class="page-link" href="/users?page=<%= i %>&search=<%= searchQuery %>"><%= i %></a>
+        </li>
+      <% } %>
+    </ul>
+  </nav>
+
+  </div>
+
+  <!-- Incluir los Modales -->
+  <%- include('./partials/createUser') %>
+  <%- include('./partials/editUser') %>
+
+  <!-- Script para cargar datos en el modal de edición -->
+  <script>
+    function loadEditModal(id, name, email, role) {
+      const editModal = document.querySelector('#editUserModal');
+      editModal.querySelector('form').action = `/users/edit/${id}`;
+      editModal.querySelector('#name').value = name;
+      editModal.querySelector('#email').value = email;
+      editModal.querySelector('#role').value = role;
+    }
+  </script>
+
+  <!-- Bootstrap JS and dependencies (jQuery, Popper.js, Bootstrap JS) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <!-- Script para vista previa de imagen -->
+  <script>
+  // Función para mostrar la vista previa de la imagen seleccionada
+  function showPreview(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result; // Actualiza la imagen del avatar con la nueva imagen seleccionada
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+  </script>
+
+</body>
+</html>
